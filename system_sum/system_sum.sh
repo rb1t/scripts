@@ -26,7 +26,6 @@ add_section_header "Installed Pacman Packages"
 pacman -Qqe | sed 's/^/* /' >> "$output_file"
 
 # 2. List AUR Packages
-# This section now should work given yay is installed
 if command -v yay &> /dev/null; then
     add_section_header "Installed AUR Packages"
     yay -Qqm | sed 's/^/* /' >> "$output_file"
@@ -69,6 +68,23 @@ do
         add_to_file "* $file: $(wc -l < "$HOME/$file") lines"
     fi
 done
+
+# 9. Other Apps/Installed from Discover
+add_section_header "Other Apps/Installed from Discover"
+
+# Flatpak Applications
+if command -v flatpak &> /dev/null; then
+    add_to_file "*** Flatpak Applications:"
+    flatpak list --app --columns=application | sed 's/^/* /' >> "$output_file"
+    add_to_file ""
+fi
+
+# Snap Applications
+if command -v snap &> /dev/null; then
+    add_to_file "*** Snap Applications:"
+    snap list | awk 'NR>1 {print "* " $1}' >> "$output_file"
+    add_to_file ""
+fi
 
 add_to_file ""
 add_to_file "Report generated on $(date)"
