@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# File: arch-info.sh
+# -- Archsumm --
+# Summarize installed applications and other information, printing to a file.
+# (This is only intended for Arch-based Linux systems!)
 
 # Define output file name with date and time
 output_file="archsum_$(date +'%Y-%m-%d_%H-%M-%S').txt"
@@ -19,16 +21,33 @@ add_section_header() {
     echo "" >> "$output_file"
 }
 
-add_to_file "Arch Linux System Information Report"
+# Function to generate a one-line install command from package list
+generate_install_command() {
+    local packages="$1"
+    local command_prefix="$2"
+    local output="$3"
+    echo "" >> "$output_file"
+    echo "$command_prefix $(echo $packages | tr '\n' ' ')" >> "$output_file"
+    add_to_file "" # Add an empty line for spacing
+}
+
+# Heading and timestamp
+add_to_file "-- Archsumm --"
+add_to_file "(Arch Linux System Report)"
+add_to_file "Generated on $(date +'%Y-%m-%d_%H-%M-%S')"
 
 # 1. List Installed Pacman Packages
 add_section_header "Installed Pacman Packages"
-pacman -Qqe | sed 's/^/* /' >> "$output_file"
+packages=$(pacman -Qqe)
+echo "$packages" | sed 's/^/* /' >> "$output_file"
+generate_install_command "$packages" "sudo pacman -Sy --needed" "$output_file"
 
-# 2. List AUR Packages
+# 2. List AUR Packages (using yay)
 if command -v yay &> /dev/null; then
     add_section_header "Installed AUR Packages"
-    yay -Qqm | sed 's/^/* /' >> "$output_file"
+    aur_packages=$(yay -Qqm)
+    echo "$aur_packages" | sed 's/^/* /' >> "$output_file"
+    generate_install_command "$aur_packages" "yay -S --needed" "$output_file"
 fi
 
 # 3. System Information
@@ -86,9 +105,7 @@ if command -v snap &> /dev/null; then
     add_to_file ""
 fi
 
-add_to_file ""
-add_to_file "Report generated on $(date)"
 
-# Output final message to console
+# Done!
 echo "Report generated and saved to $output_file"
 exit 0
