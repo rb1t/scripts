@@ -1,43 +1,57 @@
-import keyboard
+import evdev
 import time
 from subprocess import check_output
+import keyboard
 
-# Define the names of the two windows you want to toggle between
-WINDOW1 = "Jengu"
-WINDOW2 = "Drow"
+# Function to find the gamepad device
+def find_gamepad_device():
+    for device in evdev.list_devices():
+        dev = evdev.InputDevice(device)
+        if 'X-Box 360 pad' in dev.name:
+            return dev
+    return None
 
-CURRENT_WINDOW = WINDOW1
+# Function to toggle windows
+def toggle_windows(window1, window2, gamepad):
+    current_window = window1
+    for event in gamepad.read_loop():
+        if event.type == evdev.ecodes.EV_KEY and event.value == 1 and event.code == evdev.ecodes.BTN_START:
+            if current_window == window1:
+                print("Switching to window 2:", window2)
+                check_output(["xdotool", "search", "--name", window2, "windowactivate"])
+                current_window = window2
+            elif current_window == window2:
+                print("Switching to window 1:", window1)
+                check_output(["xdotool", "search", "--name", window1, "windowactivate"])
+                current_window = window1
+            else:
+                print("Error finding window by name!")
 
-# Define the hotkey as "tilde+g" for toggling and "tilde+esc" for exit
-TOGGLE_HOTKEY = "ctrl+alt"
-EXIT_HOTKEY = "tilde+esc"
+        # Check if the tilde+esc key combination is pressed
+        if keyboard.is_pressed('tilde+esc'):
+            print("Exiting the program.")
+            break
 
-# Flag to keep track of the hotkey state
-HOTKEY_PRESSED = False
+        time.sleep(0.1)
 
-while True:
-    # Check if the toggle hotkey is pressed
-    if keyboard.is_pressed(TOGGLE_HOTKEY):
+# Main function
+def main():
+    # Find the gamepad device
+    gamepad = find_gamepad_device()
 
-        if CURRENT_WINDOW == WINDOW1:
-            print("Switching to window 2: " + WINDOW2)
-            check_output(["xdotool", "search", "--name", WINDOW2, "windowactivate"])
-            CURRENT_WINDOW = WINDOW2
+    if gamepad is None:
+        print("Gamepad not found.")
+        return
 
-        elif CURRENT_WINDOW == WINDOW2:
-            print("Switching to window 1: " + WINDOW1)
-            check_output(["xdotool", "search", "--name", WINDOW1, "windowactivate"])
-            CURRENT_WINDOW = WINDOW1
-        else:
-            print("Error finding window by name!")
+    print(f"Using gamepad: {gamepad.name}")
 
-        # Sleep to avoid rapid processing of the hotkey
-        time.sleep(1)  # Adjust this sleep duration as needed
+    # Define the names of the two windows you want to toggle between
+    WINDOW1 = "Jengu"
+    WINDOW2 = "Drow"
 
-    # Check if the exit hotkey is pressed
-    if keyboard.is_pressed(EXIT_HOTKEY):
-        print("Exiting the program.")
-        break
+    # Start toggling windows
+    print("Listening for gamepad events... (Press 'start' button)")
+    toggle_windows(WINDOW1, WINDOW2, gamepad)
 
-    # Sleep for a short interval to avoid high CPU usage
-    time.sleep(0.1)
+if __name__ == "__main__":
+    main()

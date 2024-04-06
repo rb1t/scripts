@@ -1,1 +1,6 @@
+build/
+dist/
+new_py_env/
 py_env/
+test.py
+window_toggle.spec
