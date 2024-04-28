@@ -36,10 +36,19 @@ Icon=/home/myuser/Scripts/archupdate/icon.png
 
 _Be sure to replace the `Exec` and `Icon` values with the path you used in Step 1._
 
-** Step 3 - Add your icon to the Application Launcher **
+** Step 3 - Add your icon to the Application Launcher / Autostart **
 
 You can now add your icon/application to the Application Launcher (similar tot he 'Start' menu in Windows):
 
 - Press the super key ("Windows/Mac button")
 - Start typing "update" and the Application should appear in the list-view.
 - Right click, and choose "Add to Favorites". You should now see your application in the list.
+
+For Autostart:
+
+- Hit Metakey and type "Autostart", click Autostart in the list of results.
+- Add an entry for a Login script, using Konsole (should show in the list)
+- Edit the settings to include:
+    - _Name_: `Archupdate`
+    - _Program_: `Konsole`
+    - _Arguments_: `-e /bin/bash -c /[_your script path_]/archupdate.sh`
