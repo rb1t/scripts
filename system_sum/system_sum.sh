@@ -31,6 +31,11 @@ generate_install_command() {
     add_to_file "" # Add an empty line for spacing
 }
 
+# Check for command existence
+command_exists() {
+    command -v "$1" &> /dev/null
+}
+
 # Heading and timestamp
 add_to_file "-- Archsumm --"
 add_to_file "(Arch Linux System Report)"
@@ -38,16 +43,22 @@ add_to_file "Generated on $(date +'%Y-%m-%d_%H-%M-%S')"
 
 # 1. List Installed Pacman Packages
 add_section_header "Installed Pacman Packages"
-packages=$(pacman -Qqe)
-echo "$packages" | sed 's/^/* /' >> "$output_file"
-generate_install_command "$packages" "sudo pacman -Sy --needed" "$output_file"
+if command_exists pacman; then
+    packages=$(pacman -Qqe)
+    echo "$packages" | sed 's/^/* /' >> "$output_file"
+    generate_install_command "$packages" "sudo pacman -Sy --needed" "$output_file"
+else
+    add_to_file "Pacman not found, skipping..."
+fi
 
 # 2. List AUR Packages (using yay)
-if command -v yay &> /dev/null; then
+if command_exists yay; then
     add_section_header "Installed AUR Packages"
     aur_packages=$(yay -Qqm)
     echo "$aur_packages" | sed 's/^/* /' >> "$output_file"
     generate_install_command "$aur_packages" "yay -S --needed" "$output_file"
+else
+    add_to_file "Yay not found, skipping AUR packages..."
 fi
 
 # 3. System Information
@@ -92,19 +103,52 @@ done
 add_section_header "Other Apps/Installed from Discover"
 
 # Flatpak Applications
-if command -v flatpak &> /dev/null; then
+if command_exists flatpak; then
     add_to_file "*** Flatpak Applications:"
     flatpak list --app --columns=application | sed 's/^/* /' >> "$output_file"
     add_to_file ""
 fi
 
 # Snap Applications
-if command -v snap &> /dev/null; then
+if command_exists snap; then
     add_to_file "*** Snap Applications:"
     snap list | awk 'NR>1 {print "* " $1}' >> "$output_file"
     add_to_file ""
 fi
 
+# 10. Groups and Passwd File
+add_section_header "Groups"
+if [ -f /etc/group ]; then
+    add_to_file "$(cat /etc/group)"
+else
+    add_to_file "/etc/group file not found"
+fi
+
+add_section_header "Passwd File"
+if [ -f /etc/passwd ]; then
+    add_to_file "$(cat /etc/passwd)"
+else
+    add_to_file "/etc/passwd file not found"
+fi
+
+# 11. Contents of Specific Configuration Files
+add_section_header "Specific Configuration Files"
+
+declare -A config_files_to_check=(
+    ["~/.config/pipewire/jack.conf"]="$HOME/.config/pipewire/jack.conf"
+    ["/etc/security/limits.d/audio.conf"]="/etc/security/limits.d/audio.conf"
+    ["~/.ssh/config"]="$HOME/.ssh/config"
+)
+
+for label in "${!config_files_to_check[@]}"; do
+    config_file="${config_files_to_check[$label]}"
+    add_section_header "$label"
+    if [ -f "$config_file" ]; then
+        add_to_file "$(cat "$config_file")"
+    else
+        add_to_file "$config_file not found"
+    fi
+done
 
 # Done!
 echo "Report generated and saved to $output_file"
