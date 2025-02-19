@@ -4,8 +4,12 @@
 # Summarize installed applications and other information, printing to a file.
 # (This is only intended for Arch-based Linux systems!)
 
-# Define output file name with date and time
-output_file="archsum_$(date +'%Y-%m-%d_%H-%M-%S').txt"
+# Define output directory and file name
+output_dir="output"
+mkdir -p "$output_dir"  # Ensure the directory exists
+
+# Define the output file path
+output_file="$output_dir/archsum_$(date +'%Y-%m-%d_%H-%M-%S').txt"
 
 # Function to add content to output file
 add_to_file() {
@@ -72,9 +76,9 @@ fi
 
 # 4. Hardware Information
 add_section_header "Hardware Information"
-add_to_file "* CPU: $(lscpu | grep 'Model name' | sed -r 's/Model name:\s{1,}//')"
-add_to_file "* GPU: $(lspci | grep VGA | cut -d ':' -f3)"
-add_to_file "* RAM: $(free -h | grep Mem | awk '{print $2}') of total memory"
+add_to_file "* CPU: $(lscpu | grep 'Model name' | sed -r 's/Model name:\s{1,}//' | awk '{$1=$1; print}')"
+add_to_file "* GPU: $(lspci | grep VGA | cut -d ':' -f3 | awk '{$1=$1; print}')"
+add_to_file "* RAM: $(free -h | grep Mem | awk '{print $2}' | awk '{$1=$1; print}') of total memory"
 
 # 5. Disk Usage
 add_section_header "Disk Usage"
