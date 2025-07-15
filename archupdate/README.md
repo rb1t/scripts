@@ -1,11 +1,11 @@
 # About Arch Update
 
-This essentially just runs `sudo pacman -Syu` from your Favorites. however, it also includes an icon and instructions below to configure as a "desktop" icon in KDE. I.e., if you want to add to the Application Launcher (AKA "start menu"). The goal is simply to have a quick/convenient way to update the system.
+The goal is simply to have a quick/convenient way to update the system with minimal clicks/typing. This essentially just runs `sudo pacman -Syu` and `yay --noconfirm`. However, it also includes an icon and instructions below to configure as a "desktop"/Favorites icon in KDE. I.e., if you want to add to the Application Launcher (AKA "start menu"). 
 
 ## Requirements
 
 - Arch Linux
-- KDE
+- KDE Plasma
 
 ## Instructions
 
